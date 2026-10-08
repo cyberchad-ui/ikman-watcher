@@ -58,8 +58,11 @@ def run(config_path: str = "config.yaml") -> None:
     new_ads = [ad for ad in filtered if not state.is_seen(s, ad.slug)]
     logger.info("%d new ads after filtering", len(new_ads))
 
-    if new_ads and cfg.get("gmail", {}).get("enabled"):
-        _send_new_ads(new_ads, cfg)
+    if new_ads:
+        if cfg.get("telegram", {}).get("enabled"):
+            _send_telegram_new_ads(new_ads, cfg)
+        if cfg.get("gmail", {}).get("enabled"):
+            _send_gmail_new_ads(new_ads, cfg)
 
     for ad in new_ads:
         state.mark_seen(s, ad.slug)
@@ -73,22 +76,31 @@ def _load_config(path: str) -> dict:
         return yaml.safe_load(f)
 
 
+def _telegram_creds() -> tuple[str, str]:
+    return os.environ["TELEGRAM_BOT_TOKEN"], os.environ["TELEGRAM_CHANNEL_ID"]
+
+
 def _smtp_creds() -> tuple[str, str, str]:
-    return (
-        os.environ["GMAIL_USER"],
-        os.environ["GMAIL_APP_PASSWORD"],
-        os.environ["GMAIL_TO"],
-    )
+    return os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"], os.environ["GMAIL_TO"]
 
 
-def _send_new_ads(ads: list[scraper.Ad], cfg: dict) -> None:
+def _send_telegram_new_ads(ads: list[scraper.Ad], cfg: dict) -> None:
+    token, channel_id = _telegram_creds()
+    notifier.send_telegram_new_ads(ads, bot_token=token, channel_id=channel_id)
+
+
+def _send_gmail_new_ads(ads: list[scraper.Ad], cfg: dict) -> None:
     user, password, to = _smtp_creds()
     notifier.send_new_ads(ads, smtp_user=user, smtp_password=password, to=to)
 
 
 def _send_error(message: str, cfg: dict) -> None:
-    user, password, to = _smtp_creds()
-    notifier.send_error(message, smtp_user=user, smtp_password=password, to=to)
+    if cfg.get("telegram", {}).get("enabled"):
+        token, channel_id = _telegram_creds()
+        notifier.send_telegram_error(message, bot_token=token, channel_id=channel_id)
+    elif cfg.get("gmail", {}).get("enabled"):
+        user, password, to = _smtp_creds()
+        notifier.send_error(message, smtp_user=user, smtp_password=password, to=to)
 
 
 if __name__ == "__main__":
