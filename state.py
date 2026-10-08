@@ -8,8 +8,11 @@ STATE_PATH = Path("state/seen.json")
 def load() -> dict:
     if not STATE_PATH.exists():
         return {"first_run_done": False, "last_zero_alert": None, "seen": {}}
-    with open(STATE_PATH) as f:
-        return json.load(f)
+    try:
+        with open(STATE_PATH) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {"first_run_done": False, "last_zero_alert": None, "seen": {}}
 
 
 def save(s: dict) -> None:
