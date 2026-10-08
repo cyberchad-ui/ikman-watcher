@@ -1,0 +1,15 @@
+filters:
+  price_min: 50000
+  price_max: 75000
+  beds_min: 1
+  beds_max: 2
+
+sources:
+  - https://ikman.lk/en/ads/colombo/house-rentals?money.price.minimum=50000&money.price.maximum=75000
+  - https://ikman.lk/en/ads/colombo/apartment-rentals?money.price.minimum=50000&money.price.maximum=75000
+
+gmail:
+  enabled: true
+
+whatsapp:
+  enabled: false  # not yet implemented
