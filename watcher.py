@@ -30,7 +30,10 @@ def run(config_path: str = "config.yaml") -> None:
     if not all_ads:
         logger.warning("0 ads returned from all sources")
         if not state.is_first_run(s) and state.should_send_zero_alert(s):
-            _send_error("0 ads returned from all sources. The site structure may have changed.", cfg)
+            try:
+                _send_error("0 ads returned from all sources. The site structure may have changed.", cfg)
+            except Exception as exc:
+                logger.error("Failed to send zero-ads alert: %s", exc)
             state.mark_zero_alert_sent(s)
         state.save(s)
         return
