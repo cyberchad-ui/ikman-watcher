@@ -115,3 +115,39 @@ def test_parse_falls_back_to_html_when_no_json():
 
 def test_parse_returns_empty_list_for_blank_html():
     assert parse("<html></html>") == []
+
+
+# --- HTML fallback ---
+
+SAMPLE_HTML_CARD = """
+<html><body><ul>
+<li class="normal-ad" data-slug="house-html-456">
+  <a href="/en/ad/house-html-456">
+    <h2 class="heading--2mPag">Cozy 1BR Apartment</h2>
+  </a>
+  <div class="price--3NTpl">Rs 55,000</div>
+  <span class="attribute--2xEMc">1 bed</span>
+  <span class="attribute--2xEMc">1 bath</span>
+  <span class="category--1aB2c">Apartments for Rent</span>
+  <time datetime="2026-10-08T08:00:00Z">Today</time>
+</li>
+</ul></body></html>
+"""
+
+
+def test_html_fallback_extracts_price():
+    from scraper import _parse_html
+    ads = _parse_html(SAMPLE_HTML_CARD, "https://ikman.lk")
+    assert any(a.price == 55000 for a in ads)
+
+
+def test_html_fallback_extracts_url():
+    from scraper import _parse_html
+    ads = _parse_html(SAMPLE_HTML_CARD, "https://ikman.lk")
+    assert any("house-html-456" in a.url for a in ads)
+
+
+def test_html_fallback_returns_list_on_unrecognised_structure():
+    from scraper import _parse_html
+    result = _parse_html("<html><body><p>nothing here</p></body></html>", "https://ikman.lk")
+    assert isinstance(result, list)

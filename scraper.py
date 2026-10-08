@@ -137,7 +137,54 @@ def _normalize_ad(a: dict, base_url: str) -> Optional[Ad]:
 
 
 def _parse_html(html: str, base_url: str) -> list[Ad]:
-    return []  # implemented in Task 5
+    soup = BeautifulSoup(html, "lxml")
+    cards = (
+        soup.select("li.normal-ad, li.top-ad")
+        or soup.select("[data-testid='listing-item']")
+        or soup.select(".list-item--gallery")
+        or soup.select(".ad-item")
+    )
+    ads = []
+    for card in cards:
+        try:
+            ad = _parse_card(card, base_url)
+            if ad:
+                ads.append(ad)
+        except Exception as exc:
+            logger.debug("Skipping malformed HTML card: %s", exc)
+    return ads
+
+
+def _parse_card(card, base_url: str) -> Optional[Ad]:
+    link = card.find("a", href=True)
+    if not link:
+        return None
+    href = link["href"]
+    slug = card.get("data-slug") or href.rstrip("/").split("/")[-1]
+
+    heading = card.find(re.compile(r"^h[1-6]$"))
+    title = heading.get_text(strip=True) if heading else link.get_text(strip=True)
+
+    price_tag = card.find(class_=re.compile(r"price", re.I))
+    price = _parse_price(price_tag.get_text(strip=True)) if price_tag else 0
+
+    beds = baths = 0
+    for attr in card.find_all(class_=re.compile(r"attribute", re.I)):
+        text = attr.get_text(strip=True).lower()
+        if "bed" in text:
+            beds = _parse_int(text)
+        elif "bath" in text:
+            baths = _parse_int(text)
+
+    cat_tag = card.find(class_=re.compile(r"category", re.I))
+    category = cat_tag.get_text(strip=True) if cat_tag else ""
+
+    time_tag = card.find("time")
+    posted_time = (time_tag.get("datetime") or time_tag.get_text(strip=True)) if time_tag else ""
+
+    url = href if href.startswith("http") else f"{base_url}{href}"
+    return Ad(slug=slug, title=title, price=price, beds=beds, baths=baths,
+              category=category, posted_time=posted_time, url=url)
 
 
 def _parse_int(value) -> int:
