@@ -48,7 +48,7 @@
       padding: 36px 16px 48px;
     }
     .wrap {
-      max-width: 440px;
+      max-width: 460px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
@@ -82,21 +82,37 @@
     .field { display: flex; flex-direction: column; gap: 5px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     label { font-size: 12px; font-weight: 500; color: var(--fg-muted); }
-    input[type="number"], input[type="password"], input[type="text"] {
+    input[type="number"], input[type="password"], input[type="text"],
+    select {
       background: var(--input-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
       color: var(--fg);
-      font-family: var(--font-num);
+      font-family: var(--font-ui);
       font-size: 13px;
       padding: 8px 10px;
       outline: none;
       transition: border-color 0.12s;
-      font-variant-numeric: tabular-nums;
       width: 100%;
     }
-    input:focus { border-color: var(--accent); }
+    input[type="number"] { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+    input:focus, select:focus { border-color: var(--accent); }
     input::placeholder { color: var(--fg-muted); opacity: 0.6; }
+
+    /* Checkboxes */
+    .check-group { display: flex; flex-direction: column; gap: 8px; }
+    .check-item {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; user-select: none;
+    }
+    .check-item input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .check-item span { font-size: 13px; color: var(--fg); }
+
     .hint { font-size: 11px; color: var(--fg-muted); line-height: 1.4; }
     .hint a { color: var(--accent); }
     .token-row { display: flex; align-items: center; gap: 8px; }
@@ -137,36 +153,82 @@
     <p class="subtitle">Change your search filters — saves directly to the repo.</p>
   </div>
 
+  <!-- Auth -->
   <div class="card" id="auth-card">
     <div class="card-label">GitHub Access</div>
     <div class="field">
       <label for="gh-token">Personal access token</label>
       <div class="token-row">
-        <input type="password" id="gh-token" placeholder="ghp_…" autocomplete="off" spellcheck="false">
+        <input type="password" id="gh-token" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
         <button class="btn btn-ghost" id="connect-btn">Connect</button>
       </div>
       <p class="hint">
-        Needs <strong>Contents: Read &amp; Write</strong> on this repo.<br>
-        Create at <a href="https://github.com/settings/tokens?type=beta" target="_blank">github.com/settings/tokens</a> → Fine-grained → cyberchad-ui/ikman-watcher → Contents: R&amp;W.<br>
-        Token is saved in your browser only, never sent anywhere except GitHub.
+        Fine-grained token from <strong>cyberchad-ui</strong> account →
+        <a href="https://github.com/settings/tokens?type=beta" target="_blank">github.com/settings/tokens</a><br>
+        Repository: <code>ikman-watcher</code> · Permission: <strong>Contents → Read &amp; write</strong><br>
+        Saved in your browser only.
       </p>
     </div>
     <div class="status" id="auth-status"></div>
   </div>
 
+  <!-- Config -->
   <div id="config-section">
     <div class="card">
-      <div class="card-label">Rent filters</div>
+      <div class="card-label">Location</div>
+      <div class="field">
+        <label for="location">City / district</label>
+        <select id="location">
+          <option value="colombo">Colombo</option>
+          <option value="gampaha">Gampaha</option>
+          <option value="kalutara">Kalutara</option>
+          <option value="kandy">Kandy</option>
+          <option value="galle">Galle</option>
+          <option value="matara">Matara</option>
+          <option value="kurunegala">Kurunegala</option>
+          <option value="ratnapura">Ratnapura</option>
+          <option value="kegalle">Kegalle</option>
+          <option value="nuwara-eliya">Nuwara Eliya</option>
+          <option value="badulla">Badulla</option>
+          <option value="anuradhapura">Anuradhapura</option>
+          <option value="polonnaruwa">Polonnaruwa</option>
+          <option value="trincomalee">Trincomalee</option>
+          <option value="batticaloa">Batticaloa</option>
+          <option value="jaffna">Jaffna</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Property type</div>
+      <div class="check-group">
+        <label class="check-item">
+          <input type="checkbox" id="cat-house" value="house-rentals" checked>
+          <span>Houses</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="cat-apartment" value="apartment-rentals" checked>
+          <span>Apartments</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="cat-room" value="room-rentals">
+          <span>Rooms</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Rent &amp; bedrooms</div>
       <div class="field">
         <label>Monthly rent (LKR)</label>
         <div class="field-row">
           <div class="field">
-            <label for="price-min">Minimum</label>
-            <input type="number" id="price-min" step="5000" min="0" max="500000">
+            <label for="price-min">Min</label>
+            <input type="number" id="price-min" step="5000" min="0" max="5000000">
           </div>
           <div class="field">
-            <label for="price-max">Maximum</label>
-            <input type="number" id="price-max" step="5000" min="0" max="500000">
+            <label for="price-max">Max</label>
+            <input type="number" id="price-max" step="5000" min="0" max="5000000">
           </div>
         </div>
       </div>
@@ -184,6 +246,7 @@
         </div>
       </div>
     </div>
+
     <div class="card">
       <div class="card-label">Actions</div>
       <button class="btn btn-primary" id="save-btn" disabled>Save to repo</button>
@@ -198,6 +261,8 @@ const REPO = 'cyberchad-ui/ikman-watcher';
 const FILE = 'config.yaml';
 const API  = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
 
+const CATEGORIES = ['house-rentals', 'apartment-rentals', 'room-rentals'];
+
 let currentSha = null;
 let loadedConfig = null;
 
@@ -209,6 +274,25 @@ function setStatus(id, msg, cls) {
   const el = document.getElementById(id);
   el.textContent = msg;
   el.className = 'status ' + (cls || '');
+}
+
+// Extract location slug from a source URL
+function extractLocation(url) {
+  const m = url.match(/\/en\/ads\/([^/]+)\//);
+  return m ? m[1] : 'colombo';
+}
+
+// Extract category slug from a source URL
+function extractCategory(url) {
+  const m = url.match(/\/en\/ads\/[^/]+\/([^?]+)/);
+  return m ? m[1] : '';
+}
+
+// Build sources array from UI
+function buildSources(location, categories, priceMin, priceMax) {
+  return categories.map(cat =>
+    `https://ikman.lk/en/ads/${location}/${cat}?money.price.minimum=${priceMin}&money.price.maximum=${priceMax}`
+  );
 }
 
 function buildYaml(cfg) {
@@ -247,10 +331,29 @@ async function fetchConfig(token) {
 }
 
 function populate(cfg) {
+  // Price & beds
   document.getElementById('price-min').value = cfg.filters.price_min;
   document.getElementById('price-max').value = cfg.filters.price_max;
   document.getElementById('beds-min').value  = cfg.filters.beds_min;
   document.getElementById('beds-max').value  = cfg.filters.beds_max;
+
+  // Location — take from first source URL
+  const sources = cfg.sources || [];
+  if (sources.length) {
+    const loc = extractLocation(sources[0]);
+    const sel = document.getElementById('location');
+    // Select matching option, or keep default
+    for (const opt of sel.options) {
+      if (opt.value === loc) { sel.value = loc; break; }
+    }
+  }
+
+  // Categories — which ones are in sources
+  const activeCats = new Set(sources.map(extractCategory));
+  for (const cat of CATEGORIES) {
+    const el = document.getElementById('cat-' + cat.split('-')[0]);
+    if (el) el.checked = activeCats.has(cat);
+  }
 }
 
 async function connect(token) {
@@ -264,7 +367,6 @@ async function connect(token) {
     document.getElementById('config-section').classList.add('visible');
     document.getElementById('auth-card').style.display = 'none';
     document.getElementById('save-btn').disabled = false;
-    setStatus('auth-status', '', '');
   } catch (e) {
     setStatus('auth-status', e.message, 'err');
   } finally {
@@ -278,18 +380,28 @@ async function save() {
   document.getElementById('save-btn').disabled = true;
   setStatus('save-status', 'Saving…', '');
   try {
-    const f = {
-      price_min: parseInt(document.getElementById('price-min').value, 10),
-      price_max: parseInt(document.getElementById('price-max').value, 10),
-      beds_min:  parseInt(document.getElementById('beds-min').value, 10),
-      beds_max:  parseInt(document.getElementById('beds-max').value, 10),
+    const priceMin = parseInt(document.getElementById('price-min').value, 10);
+    const priceMax = parseInt(document.getElementById('price-max').value, 10);
+    const bedsMin  = parseInt(document.getElementById('beds-min').value, 10);
+    const bedsMax  = parseInt(document.getElementById('beds-max').value, 10);
+    const location = document.getElementById('location').value;
+
+    const selectedCats = CATEGORIES.filter(cat => {
+      const el = document.getElementById('cat-' + cat.split('-')[0]);
+      return el && el.checked;
+    });
+
+    if (priceMin >= priceMax) throw new Error('Min rent must be less than max.');
+    if (bedsMin > bedsMax)    throw new Error('Min beds must be ≤ max beds.');
+    if (!selectedCats.length) throw new Error('Select at least one property type.');
+
+    const updated = {
+      ...loadedConfig,
+      filters: { price_min: priceMin, price_max: priceMax, beds_min: bedsMin, beds_max: bedsMax },
+      sources: buildSources(location, selectedCats, priceMin, priceMax)
     };
-    if (f.price_min >= f.price_max) throw new Error('Min rent must be less than max.');
-    if (f.beds_min > f.beds_max)    throw new Error('Min beds must be ≤ max beds.');
 
-    const updated = { ...loadedConfig, filters: f };
     const content = btoa(unescape(encodeURIComponent(buildYaml(updated))));
-
     const res = await fetch(API, {
       method: 'PUT',
       headers: {
@@ -329,6 +441,7 @@ document.getElementById('disconnect-btn').addEventListener('click', () => {
   document.getElementById('gh-token').value = '';
   document.getElementById('config-section').classList.remove('visible');
   document.getElementById('auth-card').style.display = '';
+  setStatus('auth-status', '', '');
 });
 
 const saved = getToken();
