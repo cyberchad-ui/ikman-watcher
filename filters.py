@@ -15,7 +15,12 @@ def apply_filters(
             continue
         if areas:
             haystack = (ad.slug + " " + ad.title).lower()
-            if not any(a.lower() in haystack for a in areas):
+            expanded = []
+            for a in areas:
+                expanded.append(a.lower())
+                if a.lower() == "wellawatte":
+                    expanded.append("wellawatha")
+            if not any(a in haystack for a in expanded):
                 continue
         result.append(ad)
     return result
