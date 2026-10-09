@@ -218,6 +218,30 @@
     </div>
 
     <div class="card">
+      <div class="card-label">Areas <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--fg-muted)">— leave all unchecked to include all areas</span></div>
+      <div class="check-group" id="areas-group">
+        <label class="check-item"><input type="checkbox" class="area-cb" value="battaramulla"><span>Battaramulla</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="rajagiriya"><span>Rajagiriya</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="nugegoda"><span>Nugegoda</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="maharagama"><span>Maharagama</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="piliyandala"><span>Piliyandala</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="homagama"><span>Homagama</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="kottawa"><span>Kottawa</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="pannipitiya"><span>Pannipitiya</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="malabe"><span>Malabe</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="athurugiriya"><span>Athurugiriya</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="dehiwala"><span>Dehiwala</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="mount lavinia"><span>Mount Lavinia</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="moratuwa"><span>Moratuwa</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="kesbewa"><span>Kesbewa</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="boralesgamuwa"><span>Boralesgamuwa</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="wellawatt"><span>Wellawatte</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="bambalapitiya"><span>Bambalapitiya</span></label>
+        <label class="check-item"><input type="checkbox" class="area-cb" value="colombo 0"><span>Colombo city (1–15)</span></label>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-label">Rent &amp; bedrooms</div>
       <div class="field">
         <label>Monthly rent (LKR)</label>
@@ -298,12 +322,16 @@ function buildSources(location, categories, priceMin, priceMax) {
 function buildYaml(cfg) {
   const f = cfg.filters;
   const sources = cfg.sources.map(s => `  - ${s}`).join('\n');
+  const areas = (f.areas && f.areas.length)
+    ? '\n' + f.areas.map(a => `  - ${a}`).join('\n')
+    : ' []';
   return [
     `filters:`,
     `  price_min: ${f.price_min}`,
     `  price_max: ${f.price_max}`,
     `  beds_min: ${f.beds_min}`,
     `  beds_max: ${f.beds_max}`,
+    `  areas:${areas}`,
     ``,
     `sources:`,
     sources,
@@ -354,6 +382,12 @@ function populate(cfg) {
     const el = document.getElementById('cat-' + cat.split('-')[0]);
     if (el) el.checked = activeCats.has(cat);
   }
+
+  // Areas
+  const activeAreas = new Set((cfg.filters.areas || []).map(a => a.toLowerCase()));
+  document.querySelectorAll('.area-cb').forEach(cb => {
+    cb.checked = activeAreas.has(cb.value.toLowerCase());
+  });
 }
 
 async function connect(token) {
@@ -395,9 +429,11 @@ async function save() {
     if (bedsMin > bedsMax)    throw new Error('Min beds must be ≤ max beds.');
     if (!selectedCats.length) throw new Error('Select at least one property type.');
 
+    const selectedAreas = Array.from(document.querySelectorAll('.area-cb:checked')).map(cb => cb.value);
+
     const updated = {
       ...loadedConfig,
-      filters: { price_min: priceMin, price_max: priceMax, beds_min: bedsMin, beds_max: bedsMax },
+      filters: { price_min: priceMin, price_max: priceMax, beds_min: bedsMin, beds_max: bedsMax, areas: selectedAreas },
       sources: buildSources(location, selectedCats, priceMin, priceMax)
     };
 

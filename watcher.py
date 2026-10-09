@@ -44,6 +44,7 @@ def run(config_path: str = "config.yaml") -> None:
         price_max=filters["price_max"],
         beds_min=filters["beds_min"],
         beds_max=filters["beds_max"],
+        areas=filters.get("areas") or None,
     )
 
     if state.is_first_run(s):
