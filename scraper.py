@@ -71,18 +71,28 @@ def _parse_json(html: str, base_url: str) -> Optional[list[Ad]]:
         except (json.JSONDecodeError, TypeError):
             pass
 
-    # Strategy 2: window.initialData = {...};
+    # Strategy 2: window.initialData = {...}
+    # Use string search rather than regex to avoid lazy-match cutting off large JSON
     for script in soup.find_all("script"):
         text = script.string or ""
-        m = re.search(r"window\.initialData\s*=\s*(\{.+?\});", text, re.DOTALL)
-        if m:
-            try:
-                data = json.loads(m.group(1))
-                raw = data.get("ads") or data.get("listings")
-                if raw is not None:
+        marker = "window.initialData = "
+        if marker not in text:
+            continue
+        json_str = text[text.index(marker) + len(marker):].rstrip().rstrip(";").rstrip()
+        try:
+            data = json.loads(json_str)
+            # Path: serp.ads (type=Success) -> data.ads list
+            serp_ads = data.get("serp", {}).get("ads", {})
+            if isinstance(serp_ads, dict) and serp_ads.get("type") == "Success":
+                raw = serp_ads.get("data", {}).get("ads", [])
+                if raw:
                     return _normalize_list(raw, base_url)
-            except json.JSONDecodeError:
-                pass
+            # Fallback paths
+            raw = data.get("ads") or data.get("listings")
+            if raw is not None:
+                return _normalize_list(raw, base_url)
+        except json.JSONDecodeError:
+            pass
 
     return None
 
@@ -113,8 +123,14 @@ def _normalize_ad(a: dict, base_url: str) -> Optional[Ad]:
         title = str(a.get("title") or a.get("heading") or "")
 
         price_raw = a.get("price", 0)
-        price = int(price_raw["value"]) if isinstance(price_raw, dict) else int(price_raw or 0)
+        if isinstance(price_raw, dict):
+            price = int(price_raw["value"])
+        elif isinstance(price_raw, str):
+            price = _parse_price(price_raw)
+        else:
+            price = int(price_raw or 0)
 
+        # Beds/baths: try attributes dict/list first, then parse "details" string
         attrs = a.get("attributes") or {}
         if isinstance(attrs, list):
             attrs = {item.get("key", ""): item.get("value", "") for item in attrs}
@@ -122,10 +138,19 @@ def _normalize_ad(a: dict, base_url: str) -> Optional[Ad]:
         beds = _parse_int(attrs.get("beds") or attrs.get("bedrooms") or a.get("beds", 0))
         baths = _parse_int(attrs.get("baths") or attrs.get("bathrooms") or a.get("baths", 0))
 
+        if beds == 0 and baths == 0:
+            details = str(a.get("details") or a.get("propertiesDesc") or "")
+            m_beds = re.search(r"Beds?\s*[:\-]\s*(\d+)", details, re.I)
+            m_baths = re.search(r"Baths?\s*[:\-]\s*(\d+)", details, re.I)
+            if m_beds:
+                beds = int(m_beds.group(1))
+            if m_baths:
+                baths = int(m_baths.group(1))
+
         cat = a.get("category", {})
         category = str(cat.get("name") if isinstance(cat, dict) else cat or "")
 
-        posted_time = str(a.get("postedAt") or a.get("created_at") or a.get("date") or "")
+        posted_time = str(a.get("timeStamp") or a.get("postedAt") or a.get("created_at") or a.get("date") or "")
 
         href = str(a.get("url") or a.get("link") or f"/en/ad/{slug}")
         url = href if href.startswith("http") else f"{base_url}{href}"
