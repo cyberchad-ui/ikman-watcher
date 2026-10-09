@@ -2,12 +2,20 @@ filters:
   price_min: 50000
   price_max: 90000
   beds_min: 1
-  beds_max: 2
-  areas: []
+  beds_max: 3
+  areas:
+  - battaramulla
+  - rajagiriya
+  - dehiwala
+  - mount lavinia
+  - boralesgamuwa
+  - wellawatt
+  - bambalapitiya
+  - colombo 0
 
 sources:
-  - https://ikman.lk/en/ads/colombo/house-rentals?money.price.minimum=50000&money.price.maximum=75000
-  - https://ikman.lk/en/ads/colombo/apartment-rentals?money.price.minimum=50000&money.price.maximum=75000
+  - https://ikman.lk/en/ads/colombo/house-rentals?money.price.minimum=50000&money.price.maximum=90000
+  - https://ikman.lk/en/ads/colombo/apartment-rentals?money.price.minimum=50000&money.price.maximum=90000
 
 gmail:
   enabled: false
