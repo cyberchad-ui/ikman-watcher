@@ -408,6 +408,26 @@ async function connect(token) {
   }
 }
 
+async function resetSeen(token) {
+  const STATE_API = `https://api.github.com/repos/${REPO}/contents/state/seen.json`;
+  // Get current sha
+  const get = await fetch(STATE_API, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+  });
+  if (!get.ok) return; // best-effort
+  const existing = await get.json();
+  const blank = btoa(JSON.stringify({ first_run_done: false, last_zero_alert: null, seen: {} }, null, 2) + '\n');
+  await fetch(STATE_API, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ message: 'chore: reset seen state after filter change [skip ci]', content: blank, sha: existing.sha })
+  });
+}
+
 async function save() {
   const token = getToken();
   if (!token) return;
@@ -456,7 +476,11 @@ async function save() {
     const data = await res.json();
     currentSha = data.content.sha;
     loadedConfig = updated;
-    setStatus('save-status', 'Saved — next run uses new filters.', 'ok');
+
+    // Reset seen.json so old ads don't flood in with new filters
+    await resetSeen(token);
+
+    setStatus('save-status', 'Saved — seen ads reset, next run will seed silently.', 'ok');
   } catch (e) {
     setStatus('save-status', e.message, 'err');
   } finally {
