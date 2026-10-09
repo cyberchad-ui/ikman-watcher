@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ikman Watcher Settings</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <style>
+    :root {
+      --bg:       #f0eff0;
+      --surface:  #ffffff;
+      --fg:       #161518;
+      --fg-muted: #7a7880;
+      --border:   #dddce0;
+      --input-bg: #f7f6f8;
+      --accent:   #5b4de8;
+      --accent-h: #4a3ecf;
+      --ok:       #1e9e5c;
+      --err:      #c93f3f;
+      --font-ui:  'Sora', system-ui, sans-serif;
+      --font-num: 'JetBrains Mono', monospace;
+      --radius:   8px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:       #111014;
+        --surface:  #1c1a20;
+        --fg:       #e6e4ec;
+        --fg-muted: #807d8c;
+        --border:   #2d2b34;
+        --input-bg: #161419;
+        --accent:   #7b6ff0;
+        --accent-h: #6a5ee0;
+        --ok:       #2cbf72;
+        --err:      #e05252;
+        color-scheme: dark;
+      }
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      line-height: 1.55;
+      margin: 0;
+      padding: 36px 16px 48px;
+    }
+    .wrap {
+      max-width: 440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .header { display: flex; flex-direction: column; gap: 4px; }
+    .header-top { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    h1 { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+    .subtitle { font-size: 12px; color: var(--fg-muted); margin: 0; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .card-label {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      color: var(--fg-muted);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    label { font-size: 12px; font-weight: 500; color: var(--fg-muted); }
+    input[type="number"], input[type="password"], input[type="text"] {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--fg);
+      font-family: var(--font-num);
+      font-size: 13px;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.12s;
+      font-variant-numeric: tabular-nums;
+      width: 100%;
+    }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--fg-muted); opacity: 0.6; }
+    .hint { font-size: 11px; color: var(--fg-muted); line-height: 1.4; }
+    .hint a { color: var(--accent); }
+    .token-row { display: flex; align-items: center; gap: 8px; }
+    .token-row input { flex: 1; }
+    .btn {
+      border: none; border-radius: 6px;
+      font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+      padding: 9px 16px; cursor: pointer;
+      transition: background 0.12s, opacity 0.12s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; width: 100%; font-size: 14px; padding: 10px; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-ghost {
+      background: transparent; color: var(--fg-muted);
+      border: 1px solid var(--border); font-size: 11px; padding: 5px 10px;
+    }
+    .btn-ghost:hover { color: var(--fg); border-color: var(--fg-muted); }
+    .status { font-size: 12px; text-align: center; min-height: 18px; color: var(--fg-muted); }
+    .status.ok  { color: var(--ok); }
+    .status.err { color: var(--err); }
+    #config-section { display: none; }
+    #config-section.visible { display: flex; flex-direction: column; gap: 20px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="7" stroke="#fff" stroke-width="1.5"/>
+          <path d="M9 5v4l2.5 2.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1>ikman Watcher</h1>
+    </div>
+    <p class="subtitle">Change your search filters — saves directly to the repo.</p>
+  </div>
+
+  <div class="card" id="auth-card">
+    <div class="card-label">GitHub Access</div>
+    <div class="field">
+      <label for="gh-token">Personal access token</label>
+      <div class="token-row">
+        <input type="password" id="gh-token" placeholder="ghp_…" autocomplete="off" spellcheck="false">
+        <button class="btn btn-ghost" id="connect-btn">Connect</button>
+      </div>
+      <p class="hint">
+        Needs <strong>Contents: Read &amp; Write</strong> on this repo.<br>
+        Create at <a href="https://github.com/settings/tokens?type=beta" target="_blank">github.com/settings/tokens</a> → Fine-grained → cyberchad-ui/ikman-watcher → Contents: R&amp;W.<br>
+        Token is saved in your browser only, never sent anywhere except GitHub.
+      </p>
+    </div>
+    <div class="status" id="auth-status"></div>
+  </div>
+
+  <div id="config-section">
+    <div class="card">
+      <div class="card-label">Rent filters</div>
+      <div class="field">
+        <label>Monthly rent (LKR)</label>
+        <div class="field-row">
+          <div class="field">
+            <label for="price-min">Minimum</label>
+            <input type="number" id="price-min" step="5000" min="0" max="500000">
+          </div>
+          <div class="field">
+            <label for="price-max">Maximum</label>
+            <input type="number" id="price-max" step="5000" min="0" max="500000">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Bedrooms</label>
+        <div class="field-row">
+          <div class="field">
+            <label for="beds-min">Min</label>
+            <input type="number" id="beds-min" step="1" min="0" max="10">
+          </div>
+          <div class="field">
+            <label for="beds-max">Max</label>
+            <input type="number" id="beds-max" step="1" min="0" max="10">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Actions</div>
+      <button class="btn btn-primary" id="save-btn" disabled>Save to repo</button>
+      <div class="status" id="save-status"></div>
+      <button class="btn btn-ghost" id="disconnect-btn" style="align-self:center;">Disconnect token</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const REPO = 'cyberchad-ui/ikman-watcher';
+const FILE = 'config.yaml';
+const API  = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
+
+let currentSha = null;
+let loadedConfig = null;
+
+function getToken() { try { return localStorage.getItem('gh_token') || ''; } catch { return ''; } }
+function setToken(t) { try { localStorage.setItem('gh_token', t); } catch {} }
+function clearToken() { try { localStorage.removeItem('gh_token'); } catch {} }
+
+function setStatus(id, msg, cls) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status ' + (cls || '');
+}
+
+function buildYaml(cfg) {
+  const f = cfg.filters;
+  const sources = cfg.sources.map(s => `  - ${s}`).join('\n');
+  return [
+    `filters:`,
+    `  price_min: ${f.price_min}`,
+    `  price_max: ${f.price_max}`,
+    `  beds_min: ${f.beds_min}`,
+    `  beds_max: ${f.beds_max}`,
+    ``,
+    `sources:`,
+    sources,
+    ``,
+    `gmail:`,
+    `  enabled: ${cfg.gmail.enabled}`,
+    ``,
+    `telegram:`,
+    `  enabled: ${cfg.telegram.enabled}`,
+    ``,
+    `whatsapp:`,
+    `  enabled: ${cfg.whatsapp.enabled}`,
+    ``
+  ].join('\n');
+}
+
+async function fetchConfig(token) {
+  const res = await fetch(API, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+  });
+  if (!res.ok) throw new Error(`GitHub ${res.status}: ${res.statusText}`);
+  const json = await res.json();
+  currentSha = json.sha;
+  return jsyaml.load(atob(json.content.replace(/\n/g, '')));
+}
+
+function populate(cfg) {
+  document.getElementById('price-min').value = cfg.filters.price_min;
+  document.getElementById('price-max').value = cfg.filters.price_max;
+  document.getElementById('beds-min').value  = cfg.filters.beds_min;
+  document.getElementById('beds-max').value  = cfg.filters.beds_max;
+}
+
+async function connect(token) {
+  document.getElementById('connect-btn').disabled = true;
+  setStatus('auth-status', 'Connecting…', '');
+  try {
+    const cfg = await fetchConfig(token);
+    loadedConfig = cfg;
+    setToken(token);
+    populate(cfg);
+    document.getElementById('config-section').classList.add('visible');
+    document.getElementById('auth-card').style.display = 'none';
+    document.getElementById('save-btn').disabled = false;
+    setStatus('auth-status', '', '');
+  } catch (e) {
+    setStatus('auth-status', e.message, 'err');
+  } finally {
+    document.getElementById('connect-btn').disabled = false;
+  }
+}
+
+async function save() {
+  const token = getToken();
+  if (!token) return;
+  document.getElementById('save-btn').disabled = true;
+  setStatus('save-status', 'Saving…', '');
+  try {
+    const f = {
+      price_min: parseInt(document.getElementById('price-min').value, 10),
+      price_max: parseInt(document.getElementById('price-max').value, 10),
+      beds_min:  parseInt(document.getElementById('beds-min').value, 10),
+      beds_max:  parseInt(document.getElementById('beds-max').value, 10),
+    };
+    if (f.price_min >= f.price_max) throw new Error('Min rent must be less than max.');
+    if (f.beds_min > f.beds_max)    throw new Error('Min beds must be ≤ max beds.');
+
+    const updated = { ...loadedConfig, filters: f };
+    const content = btoa(unescape(encodeURIComponent(buildYaml(updated))));
+
+    const res = await fetch(API, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: 'config: update filters via settings UI', content, sha: currentSha })
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || `GitHub ${res.status}`);
+    }
+
+    const data = await res.json();
+    currentSha = data.content.sha;
+    loadedConfig = updated;
+    setStatus('save-status', 'Saved — next run uses new filters.', 'ok');
+  } catch (e) {
+    setStatus('save-status', e.message, 'err');
+  } finally {
+    document.getElementById('save-btn').disabled = false;
+  }
+}
+
+document.getElementById('connect-btn').addEventListener('click', () => {
+  const t = document.getElementById('gh-token').value.trim();
+  if (t) connect(t);
+});
+document.getElementById('gh-token').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { const t = e.target.value.trim(); if (t) connect(t); }
+});
+document.getElementById('save-btn').addEventListener('click', save);
+document.getElementById('disconnect-btn').addEventListener('click', () => {
+  clearToken();
+  document.getElementById('gh-token').value = '';
+  document.getElementById('config-section').classList.remove('visible');
+  document.getElementById('auth-card').style.display = '';
+});
+
+const saved = getToken();
+if (saved) { document.getElementById('gh-token').value = saved; connect(saved); }
+</script>
+</body>
+</html>
