@@ -45,6 +45,7 @@ def run(config_path: str = "config.yaml") -> None:
         beds_min=filters["beds_min"],
         beds_max=filters["beds_max"],
         areas=filters.get("areas") or None,
+        max_age_days=filters.get("max_age_days"),
     )
 
     if state.is_first_run(s):

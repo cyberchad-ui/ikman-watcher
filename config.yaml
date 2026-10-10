@@ -3,6 +3,7 @@ filters:
   price_max: 90000
   beds_min: 1
   beds_max: 3
+  max_age_days: 2
   areas:
   - battaramulla
   - rajagiriya
