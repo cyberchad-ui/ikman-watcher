@@ -1,18 +1,5 @@
 {
-  "first_run_done": true,
+  "first_run_done": false,
   "last_zero_alert": null,
-  "seen": {
-    "1st-floor-house-for-rent-mount-lavinia-for-rent-colombo-1": "2026-10-09T21:45:11.599954+00:00",
-    "house-for-rent-in-dehiwala-for-rent-colombo-6204": "2026-10-09T21:45:11.599979+00:00",
-    "single-store-house-for-rent-in-rajagiriya-for-rent-colombo": "2026-10-09T21:45:11.599982+00:00",
-    "3b-r-old-house-for-rent-mount-lavinia-for-rent-colombo": "2026-10-09T21:45:11.599984+00:00",
-    "house-for-rent-in-battaramulla-for-rent-colombo-2227": "2026-10-09T21:45:11.599987+00:00",
-    "house-for-rent-battarmulla-in-battaramulla-for-rent-colombo": "2026-10-09T21:45:11.599993+00:00",
-    "brand-new-4th-floor-2br-apartment-for-rent-in-dehiwala-off-hill-street-for-rent-colombo-2": "2026-10-09T21:45:11.599996+00:00",
-    "furnished-apartment-for-rent-colombo-05-for-rent-colombo-1": "2026-10-09T21:45:11.599999+00:00",
-    "apartment-for-rent-in-mount-lavinia-394-for-rent-colombo-1": "2026-10-09T21:45:11.600002+00:00",
-    "private-1-bedroom-apartment-for-rent-battaramulla-for-rent-colombo-1": "2026-10-09T21:45:11.600004+00:00",
-    "room-for-rent-in-dehiwala-for-rent-colombo-1190": "2026-10-09T21:45:11.600006+00:00",
-    "apartment-for-rent-koswatta-battaramulla-for-rent-colombo-1": "2026-10-09T21:45:11.600009+00:00"
-  }
+  "seen": {}
 }
