@@ -2,22 +2,28 @@ import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-STATE_PATH = Path("state/seen.json")
+
+def _state_path(config_path: str) -> Path:
+    name = Path(config_path).stem  # e.g. "config" or "config_friend"
+    suffix = name[len("config"):] if name.startswith("config") else f"_{name}"
+    return Path(f"state/seen{suffix}.json")
 
 
-def load() -> dict:
-    if not STATE_PATH.exists():
+def load(config_path: str = "config.yaml") -> dict:
+    path = _state_path(config_path)
+    if not path.exists():
         return {"first_run_done": False, "last_zero_alert": None, "seen": {}}
     try:
-        with open(STATE_PATH) as f:
+        with open(path) as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError):
         return {"first_run_done": False, "last_zero_alert": None, "seen": {}}
 
 
-def save(s: dict) -> None:
-    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(STATE_PATH, "w") as f:
+def save(s: dict, config_path: str = "config.yaml") -> None:
+    path = _state_path(config_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
         json.dump(s, f, indent=2)
 
 

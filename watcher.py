@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def run(config_path: str = "config.yaml") -> None:
     cfg = _load_config(config_path)
     filters = cfg["filters"]
-    s = state.load()
+    s = state.load(config_path)
 
     all_ads: list[scraper.Ad] = []
     for url in cfg["sources"]:
@@ -35,7 +35,7 @@ def run(config_path: str = "config.yaml") -> None:
             except Exception as exc:
                 logger.error("Failed to send zero-ads alert: %s", exc)
             state.mark_zero_alert_sent(s)
-        state.save(s)
+        state.save(s, config_path)
         return
 
     filtered = apply_filters(
@@ -54,7 +54,7 @@ def run(config_path: str = "config.yaml") -> None:
             state.mark_seen(s, ad.slug)
         s["first_run_done"] = True
         state.prune(s)
-        state.save(s)
+        state.save(s, config_path)
         return
 
     new_ads = [ad for ad in filtered if not state.is_seen(s, ad.slug)]
@@ -70,7 +70,7 @@ def run(config_path: str = "config.yaml") -> None:
         state.mark_seen(s, ad.slug)
 
     state.prune(s)
-    state.save(s)
+    state.save(s, config_path)
 
 
 def _load_config(path: str) -> dict:

@@ -45,3 +45,40 @@ jobs:
           git add state/seen.json
           git diff --cached --quiet || git commit -m "chore: update seen state [skip ci]"
           git push
+
+  watch-friend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: watch
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Pull latest state
+        run: git pull
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run watcher
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_FRIEND }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID_FRIEND }}
+        run: python watcher.py config_friend.yaml
+
+      - name: Commit updated state
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/seen_friend.json
+          git diff --cached --quiet || git commit -m "chore: update seen state [skip ci]"
+          git push
